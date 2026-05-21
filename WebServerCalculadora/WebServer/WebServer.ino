@@ -5,11 +5,7 @@
 
 #include "secrets.h"  // add WLAN Credentials in here.
 
-#include "esp_partition.h"  // to check existing data partitions in Flash memory
-
 #include <FS.h>        // File System for Web Server Files
-#include <LittleFS.h>  // Use LittleFSThis file system is used.
-#include <FFat.h>      // or.. FAT
 
 // mark parameters not used in example
 #define UNUSED __attribute__((unused))
@@ -26,9 +22,6 @@
 // need a WebServer for http access on port 80.
 WebServer server(80);
 
-// The file system in use...
-fs::FS *fsys = nullptr;
-
 // The text of builtin files are in this header file
 #include "builtinfiles.h"
 
@@ -41,17 +34,17 @@ void calculator() {
   String a = server.pathArg(1);
   String b = server.pathArg(2); 
 
-  int a = std::stoi(a);
-  int b = std::stoi(b);
+  int an = std::stoi(a);
+  int bn = std::stoi(b);
 
   int res = 0;
   if (op == "p") {
-    res = a + b;
+    res = an + bn;
   } else {
-    res = a - b;
+    res = an - bn;
   }
 
-  server.send(200, "application/json", "{res:" + res + "}");
+  server.send(200, "application/json", "{res:" + std::to_string(res) + "}");
 }  // handleSysInfo()
 
 
