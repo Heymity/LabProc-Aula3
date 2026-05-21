@@ -2,6 +2,8 @@
 #include <WebServer.h>
 #include <uri/UriRegex.h>
 #include <WiFi.h>
+#include <iostream>
+#include <string>
 
 #include "secrets.h"  // add WLAN Credentials in here.
 
@@ -34,8 +36,8 @@ void calculator() {
   String a = server.pathArg(1);
   String b = server.pathArg(2); 
 
-  int an = std::stoi(a);
-  int bn = std::stoi(b);
+  int an = a.toInt();
+  int bn = b.toInt();
 
   int res = 0;
   if (op == "p") {
@@ -44,7 +46,7 @@ void calculator() {
     res = an - bn;
   }
 
-  server.send(200, "application/json", "{res:" + std::to_string(res) + "}");
+  server.send(200, "application/json", "{res:" + String(res) + "}");
 }  // handleSysInfo()
 
 
