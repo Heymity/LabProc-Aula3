@@ -6,7 +6,7 @@
  */
 
 // used for $upload.htm
-static const char uploadContent[] PROGMEM =
+static const char calcContent[] PROGMEM =
   R"==(
 <!doctype html>
 <html lang='en'>
@@ -36,12 +36,14 @@ static const char uploadContent[] PROGMEM =
     <button id="calc" style="margin: 10px;">Calcular!</button>
     <br/>
     <p id="res"></p>
+    <p id="over"></p>
   </div>
   <script>
     let a = document.getElementById('a');
     let b = document.getElementById('b');
     let calc = document.getElementById('calc');
     let res = document.getElementById('res');
+    let overflow = document.getElementById('over');
 
     calc.addEventListener('click', () => {
       let op = document.getElementById('+').checked ? "+" : "-"
@@ -51,12 +53,14 @@ static const char uploadContent[] PROGMEM =
       else 
         res.textContent = +a.value - +b.value + "(- Calculado no js!)"
     
-      fetch(`/${op === "+" ? "p" : "m"}/${+a.value}/${+b.value}`, { method: 'GET', body: {
-        op,
-        a: +a.value,
-        b: +b.value
-      } }).then(response => {
-        res.textContent = response.body.res
+      fetch(`/calc?op=${op === "+" ? "p" : "m"}&a=${+a.value}&b=${+b.value}`, { method: 'GET' }).then(response => {
+        response.json().then(json => {
+          res.textContent = json.res
+          if (json.overflow)
+            overflow.textContent = "Houve overflow";
+          else 
+            overflow.textContent = "";
+        })        
       });  
     
      }, false)

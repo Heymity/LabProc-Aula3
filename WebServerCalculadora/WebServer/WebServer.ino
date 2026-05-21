@@ -32,9 +32,9 @@ WebServer server(80);
 
 // This function is called when the sysInfo service was requested.
 void calculator() {
-  String op = server.pathArg(0);
-  String a = server.pathArg(1);
-  String b = server.pathArg(2); 
+  String op = server.arg("op");
+  String a = server.arg("a");
+  String b = server.arg("b");
 
   int an = a.toInt();
   int bn = b.toInt();
@@ -44,9 +44,14 @@ void calculator() {
     res = an + bn;
   } else {
     res = an - bn;
-  }
+  } 
 
-  server.send(200, "application/json", "{res:" + String(res) + "}");
+  digitalWrite(0, ((res & 0xF) >> 3) & 1);
+  digitalWrite(1, ((res & 0xF) >> 2) & 1);
+  digitalWrite(2, ((res & 0xF) >> 1) & 1);
+  digitalWrite(3, ((res & 0xF))      & 1);
+
+  server.send(200, "application/json", "{\"res\":" + String(res) + ",\"overflow\":" + (res > 7 || res < -8) + "}");
 }  // handleSysInfo()
 
 
@@ -63,19 +68,13 @@ void setup(void) {
   // allow to address the device by the given name e.g. http://webserver
   WiFi.setHostname(HOSTNAME);
 
-  // start WiFI
-  WiFi.mode(WIFI_AP);
-  if (strlen(ssid) == 0) {
-    WiFi.begin();
-  } else {
-    WiFi.begin(ssid, passPhrase);
-  }
+  WiFi.setSleep(false);
 
-  TRACE("Connect to WiFi...\n");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    TRACE(".");
-  }
+  WiFi.mode(WIFI_AP);
+  WiFi.softAP(ssid, passPhrase);
+
+  delay(1000);
+
   TRACE("connected.\n");
 
   // Ask for the current time using NTP request builtin into ESP firmware.
@@ -87,7 +86,7 @@ void setup(void) {
   TRACE("Register service handlers...\n");
 
   // register some REST services
-  server.on(UriRegex("/(p|m)/(\d+)/(\d+)"), HTTP_GET, calculator);
+  server.on("/calc", HTTP_GET, calculator);
 
   TRACE("Register file system handlers...\n");
 
@@ -96,20 +95,25 @@ void setup(void) {
 
   TRACE("Register default (not found) answer...\n");
 
-  // handle cases when file is not found
-  server.onNotFound([]() {
-    // standard not found in browser.
-    server.send(404, "text/html", FPSTR(notFoundContent));
+  server.on("/", []() {
+    server.send(200, "text/html", FPSTR(calcContent));
   });
 
   server.begin();
 
   TRACE("open <http://%s> or <http://%s>\n", WiFi.getHostname(), WiFi.localIP().toString().c_str());
+
+  pinMode(0, OUTPUT);
+  pinMode(1, OUTPUT);
+  pinMode(2, OUTPUT);
+  pinMode(3, OUTPUT);
+
 }  // setup
 
 // run the server...
 void loop(void) {
   server.handleClient();
+  TRACE("open <http://%s> or <http://%s>\n", WiFi.getHostname(), WiFi.localIP().toString().c_str());
 }  // loop()
 
 // end.

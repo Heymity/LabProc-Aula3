@@ -294,12 +294,9 @@ void setup(void) {
   WiFi.setHostname(HOSTNAME);
 
   // start WiFI
+  
   WiFi.mode(WIFI_AP);
-  if (strlen(ssid) == 0) {
-    WiFi.begin();
-  } else {
-    WiFi.begin(ssid, passPhrase);
-  }
+  WiFi.softAP(ssid, passPhrase);
 
   TRACE("Connect to WiFi...\n");
   while (WiFi.status() != WL_CONNECTED) {
